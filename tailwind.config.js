@@ -5,6 +5,8 @@ module.exports = {
     "./src/components/PresenceButton.vue",
     "./src/components/AppNavbar.vue",
     "./src/components/AppCard.vue",
+    "./src/components/ContentPresence.vue",
+    "./src/components/BannerComponent.vue",
     
   ],
   theme: {
