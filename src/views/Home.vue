@@ -1,20 +1,17 @@
 <template>
     <AppNavbar/>
-    <div>
-      <PresenceButton/>
+    <div class="mt-10">
       <AppCard/>
     </div>
   </template>
   
   <script>
-  import PresenceButton from '../components/PresenceButton.vue'
   import AppCard from '../components/AppCard.vue'
   import AppNavbar from '../components/AppNavbar.vue'
   
   export default {
     name: 'HomePage',
     components: {
-      PresenceButton,
       AppCard,
       AppNavbar
     }

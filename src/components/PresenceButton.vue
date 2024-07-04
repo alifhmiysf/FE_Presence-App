@@ -1,13 +1,18 @@
 <template>
     <div>
-        <button @click="markPresence" type="button" class="text-blue-700 border border-blue-700 hover:bg-blue-700 hover:text-white focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center dark:border-blue-500 dark:text-blue-500 dark:hover:text-white dark:focus:ring-blue-800 dark:hover:bg-blue-500">
+        <!-- <button @click="openModal" type="button" class="text-blue-700 border border-blue-700 hover:bg-blue-700 hover:text-white focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center dark:border-blue-500 dark:text-blue-500 dark:hover:text-white dark:focus:ring-blue-800 dark:hover:bg-blue-500">
             <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 18">
                 <path d="M3 7H1a1 1 0 0 0-1 1v8a2 2 0 0 0 4 0V8a1 1 0 0 0-1-1Zm12.954 0H12l1.558-4.5a1.778 1.778 0 0 0-3.331-1.06A24.859 24.859 0 0 1 6 6.8v9.586h.114C8.223 16.969 11.015 18 13.6 18c1.4 0 1.592-.526 1.88-1.317l2.354-7A2 2 0 0 0 15.954 7Z"/>
             </svg>
             <span class="sr-only">Icon description</span>
+        </button> -->
+
+        <button @click="openModal" type="button" class="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">
+            Presence
         </button>
 
-        <div v-if="showNotification" id="toast-interactive" class="fixed bottom-0  right-0 m-4 w-full max-w-xs p-4 text-gray-500 bg-white rounded-lg shadow dark:bg-gray-800 dark:text-gray-400" role="alert">
+
+        <div v-if="showNotification" id="toast-interactive" class="fixed bottom-0 right-0 m-4 w-full max-w-xs p-4 text-gray-500 bg-white rounded-lg shadow dark:bg-gray-800 dark:text-gray-400" role="alert">
             <div class="flex">
                 <div class="ms-3 text-sm font-normal">
                     <span class="mb-1 text-sm font-semibold text-gray-900 dark:text-white">Thank You</span>
@@ -21,46 +26,110 @@
                 </button>
             </div>
         </div>
+
+        <div v-if="isModalOpen" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
+            <div class="bg-white rounded-lg overflow-hidden shadow-xl transform transition-all sm:w-full sm:max-w-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <video ref="video" autoplay playsinline class="w-full"></video>
+                    <div class="actions mt-4 flex justify-between">
+                        <button @click="capture" class="bg-blue-500 text-white px-4 py-2 rounded">Capture</button>
+                        <button @click="save" class="bg-green-500 text-white px-4 py-2 rounded">Save</button>
+                        <button @click="closeModal" class="bg-red-500 text-white px-4 py-2 rounded">Close</button>
+                    </div>
+                    <img v-if="photo" :src="photoUrl" alt="Captured Image" class="mt-4 w-full"/>
+                    <textarea v-model="comments" placeholder="Add comments" class="mt-4 w-full p-2 border rounded"></textarea>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
-
-
-<script>
+<script setup>
 import axios from 'axios';
+import { ref, computed, onMounted } from 'vue';
 
-export default {
-    name: 'PresenceButton',
-    data() {
-        return {
-            showNotification: false,
-            notificationMessage: '',
-        };
-    },
-    methods: {
-        markPresence() {
-            const userId = 1;
-            axios.post('http://localhost:3001/presence', { user_id: userId })
-                .then(response => {
-                    console.log('Response:', response.data);
-                    this.notificationMessage = 'Presence recorded successfully';
-                    this.showNotification = true;
-                    // Lakukan operasi berikutnya berdasarkan respons
-                })
-                .catch(error => {
-                    console.error('Error recording presence:', error);
-                    this.notificationMessage = 'There was an error recording the presence. Please try again.';
-                    this.showNotification = true;
-                });
-        },
-        hideNotification() {
-            this.showNotification = false;
+const video = ref(null);
+const photo = ref(null);
+const comments = ref('');
+const isModalOpen = ref(false);
+const showNotification = ref(false);
+const notificationMessage = ref('');
+let stream = null;
+
+const openModal = async () => {
+    isModalOpen.value = true;
+    await start();
+};
+
+const closeModal = () => {
+    isModalOpen.value = false;
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+    }
+};
+
+const start = async () => {
+    try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        if (video.value) {
+            video.value.srcObject = stream;
+        }
+    } catch (error) {
+        console.error('Error accessing webcam:', error);
+    }
+};
+
+const capture = () => {
+    if (video.value) {
+        const canvas = document.createElement('canvas');
+        canvas.width = video.value.videoWidth;
+        canvas.height = video.value.videoHeight;
+        const context = canvas.getContext('2d');
+        context.drawImage(video.value, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(blob => {
+            const file = new File([blob], 'photo.png', { type: 'image/png' });
+            photo.value = file;
+        }, 'image/png');
+    }
+};
+
+const save = async () => {
+    if (photo.value) {
+        const formData = new FormData();
+        formData.append('photo', photo.value); // Mengirim file sebagai bagian dari FormData
+        formData.append('user_id', 1);  // ID pengguna yang aktif
+        formData.append('comments', comments.value);
+
+        try {
+            await axios.post('http://localhost:3001/upload', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+            notificationMessage.value = 'Presence recorded successfully';
+            showNotification.value = true;
+            closeModal();
+        } catch (error) {
+            console.error('Error saving photo:', error);
+            notificationMessage.value = 'There was an error recording the presence. Please try again.';
+            showNotification.value = true;
         }
     }
 };
+
+const hideNotification = () => {
+    showNotification.value = false;
+};
+
+const photoUrl = computed(() => {
+  return photo.value ? URL.createObjectURL(photo.value) : '';
+});
+
+onMounted(() => {
+    // Tambahkan kode yang perlu dijalankan saat komponen dimount, jika ada
+});
 </script>
 
-
-
 <style scoped>
+/* Gaya CSS untuk PresenceButton.vue */
 </style>

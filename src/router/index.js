@@ -1,6 +1,6 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import Home from '../views/Home.vue'
-import InformaticsDetail from '../views/InformaticsDetail.vue'
+import { createRouter, createWebHistory } from 'vue-router';
+import Home from '../views/Home.vue';
+import InformaticsDetail from '../views/InformaticsDetail.vue';
 
 const routes = [
   {
@@ -13,11 +13,11 @@ const routes = [
     name: 'informatic',
     component: InformaticsDetail
   }
-]
+];
 
 const router = createRouter({
   history: createWebHistory(),
   routes
-})
+});
 
-export default router
+export default router;

@@ -58,7 +58,7 @@
     import logo from '@/assets/logo.png'
     
     export default {
-        name: 'AppNavbar',
+        name: 'AppNavbar',  
         data() {
         return {
             logo
@@ -68,7 +68,6 @@
     </script>
     
     <style scoped>
-    /* Tambahkan margin pada konten di bawah navbar */
     #app {
         padding-top: 60px; /* Sesuaikan dengan tinggi navbar */
     }
