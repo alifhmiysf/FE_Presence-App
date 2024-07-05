@@ -7,6 +7,7 @@ module.exports = {
     "./src/components/AppCard.vue",
     "./src/components/ContentPresence.vue",
     "./src/components/BannerComponent.vue",
+    "./src/About.vue",
     
   ],
   theme: {
